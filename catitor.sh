@@ -9,7 +9,6 @@ setup_terminal() {
     #              Also sets cursor to (0,0).
     printf '\e[?1049h\e[?7l\e[?25l\e[2J\e[1;%sr' "$max_items"
     scroll=1 # initially we want the first line to correspond to src/1
-#    CURRENT_FILE="catted.c"
     CURRENT_FILE=""  
     EDITING=0
     VISIT_FILE_INPUT_ACTIVE=0
@@ -48,6 +47,7 @@ clear_screen() {
 get_term_size() {
     # Get terminal size ('stty' is POSIX and always available).
     # This can't be done reliably across all bash versions in pure bash.
+    # Reads lines x columns into LINES and COLUMNS respectively
     read -r LINES COLUMNS < <(stty size)
 
     # Max list items that fit in the scroll area.
@@ -62,27 +62,21 @@ visit_file() {
 	# if visited before, delete old src
 	if [ -d $1"_src" ]; then rm -r $1"_src"; fi
 	mkdir $1"_src"
-#	i=1
+
 	# generate new src
 	split -l 1 "$1" $1"_src/"
-	# while IFS='\n' read  line; do
-	#     printf '%s' $line > $1"_src"/$i
-	#     i=$((i+1))
-	# done <"$1"
 	i=$(wc -l $1)
 	list_total=$i
 	scroll=1
 	DIRTY_DISPLAY=1
     fi
+    # If file does not exist, do nothing.
+    # this is an EDITOR not a CREATOR
 }
 
 
 
 status_line() {
-    # Escape the directory string.
-    # Remove all non-printable characters.
-#    PWD_escaped=${PWD//[^[:print:]]/^[}
-
     # '\e7':       Save cursor position.
     #              This is more widely supported than '\e[s'.
     # '\e[%sH':    Move cursor to bottom of the terminal.
@@ -125,10 +119,7 @@ redraw() {
 	    if (( list_total > 0 )); then
 		# cat the src together into a tmp file
 		cat  $CURRENT_FILE"_src"/*  > $CURRENT_FILE"_tmp"
-		# display the tmp file
-		# while read line; do
-		#     echo "%6s %s\n" "$((++i)): $line"
-		# done <$CURRENT_FILE"_tmp"
+		# Display the current file in the terminal window
 		cat -n $CURRENT_FILE"_tmp"
 		if (( list_total >= scroll )); then
 		    # Calculate the current line from stupid a-z index
@@ -167,7 +158,6 @@ cmd_line() {
 
     # '\r\e[K': Redraw the read prompt on every keypress.
     #           This is mimicking what happens normally.
-    #    while IFS= read -rsn 1 -p $'\r\e[K'"${1}${cmd_reply}" read_reply; do
     set -f
     while IFS=$'\n' read -rsn 1 -p $'\r\e[K'"${1}${cmd_reply}" read_reply; do
         case $read_reply in
@@ -188,14 +178,12 @@ cmd_line() {
 		if (( $EDITING == 1 )); then
 		    local line_filename=$(ls $CURRENT_FILE"_src"/ | sed -n $scroll"p")
 		    echo "$cmd_reply" > $CURRENT_FILE"_src"/$line_filename
-#		    echo $cmd_reply > mytest
 		    EDITING=0
 		    DIRTY_DISPLAY=1
 		elif (( $VISIT_FILE_INPUT_ACTIVE == 1 )); then
 		    VISIT_FILE_INPUT_ACTIVE=0
 		    visit_file $cmd_reply
 		fi
-#		redraw
                 break
             ;;
 
@@ -207,7 +195,7 @@ cmd_line() {
 
             # Replace '~' with '$HOME'.
             "~")
-                cmd_reply+=$HOME
+                cmd_reply+=$HOME/
             ;;
 
             # Anything else, add it to cmd_reply.
@@ -238,62 +226,21 @@ key() {
     }
 
     case ${special_key:-$1} in
-    #     # Open list item.
-    #     # 'C' is what bash sees when the right arrow is pressed
-    #     # ('\e[C' or '\eOC').
-    #     # '' is what bash sees when the enter/return key is pressed.
-    #     ${FFF_KEY_CHILD1:=l}|\
-    #     ${FFF_KEY_CHILD2:=$'\e[C'}|\
-    #     ${FFF_KEY_CHILD3:=""}|\
-    #     ${FFF_KEY_CHILD4:=$'\eOC'})
-    #         open "${list[scroll]}"
-    #     ;;
-
-    #     # 'D' is what bash sees when the left arrow is pressed
-    #     # Go to the parent directory.
-    #     # ('\e[D' or '\eOD').
-    #     # '\177' and '\b' are what bash sometimes sees when the backspace
-    #     # key is pressed.
-    #     ${FFF_KEY_PARENT1:=h}|\
-    #     ${FFF_KEY_PARENT2:=$'\e[D'}|\
-    #     ${FFF_KEY_PARENT3:=$'\177'}|\
-    #     ${FFF_KEY_PARENT4:=$'\b'}|\
-    #     ${FFF_KEY_PARENT5:=$'\eOD'})
-    #         # If a search was done, clear the results and open the current dir.
-    #         if ((search == 1 && search_end_early != 1)); then
-    #             open "$PWD"
-
-    #         # If '$PWD' is '/', do nothing.
-    #         elif [[ $PWD && $PWD != / ]]; then
-    #             find_previous=1
-    #             open "${PWD%/*}"
-    #         fi
-    #     ;;
-
         # Scroll down.
         # 'B' is what bash sees when the down arrow is pressed
         # ('\e[B' or '\eOB').
-#        ${FFF_KEY_SCROLL_DOWN1:=j}|\
         ${FFF_KEY_SCROLL_DOWN2:=$'\e[B'}|\
         ${FFF_KEY_SCROLL_DOWN3:=$'\eOB'})
             ((scroll < list_total)) && {
                 ((scroll++))
 		DIRTY_DISPLAY=1
 		redraw
-#                ((y < max_items)) && ((y++))
-
-#                print_line "$((scroll-1))"
-#                printf '\n'
-#                print_line "$scroll"
-
-#                status_line
             }
         ;;
 
         # Scroll up.
         # 'A' is what bash sees when the up arrow is pressed
         # ('\e[A' or '\eOA').
- #       ${FFF_KEY_SCROLL_UP1:=k}|\
         ${FFF_KEY_SCROLL_UP2:=$'\e[A'}|\
         ${FFF_KEY_SCROLL_UP3:=$'\eOA'})
             # '\e[1L': Insert a line above the cursor.
@@ -312,7 +259,6 @@ key() {
             cmd_line "Editing line $scroll "
 	    DIRTY_DISPLAY=1
 	    redraw
-#            [[ $cmd_reply ]]
         ;;
         # visit file.
         ${FFF_KEY_VISITFILE:=v})
@@ -342,13 +288,6 @@ key() {
 }
 
 main() {
-    # Handle a directory as the first argument.
-    # 'cd' is a cheap way of finding the full path to a directory.
-    # It updates the '$PWD' variable on successful execution.
-    # It handles relative paths as well as '../../../'.
-    #
-    # '||:': Do nothing if 'cd' fails. We don't care.
-#    cd "${2:-$1}" &>/dev/null ||:
 
     # Trap the exit signal (we need to reset the terminal to a useable state.)
     trap 'reset_terminal' EXIT
