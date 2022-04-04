@@ -6,11 +6,8 @@ CATITOR is an extremely UNIX, extremely portable, extremely extensible visual li
 - Line editing
 - Easier to exit than ViM
 
-## Screenshots
-
-![Screenshot1](catitor1.png)
-![Screenshot3](catitor3.png)
-![Screenshot4](catitor4.png)
+## CATITOR in action
+[![asciicast](https://asciinema.org/a/484069.svg)](https://asciinema.org/a/484069)
 
 
 ## Usage
