@@ -20,6 +20,23 @@ CATITOR is an extremely UNIX, extremely portable, extremely extensible visual li
 - `q` : quit
 - Navigation: arrow keys
 
+
+## Feature Comparison
+
+| Feature                  | The standard editor `ed` | CATITOR                  | ViM                                         |
+| Easy to exit             | ?                        | Yes                      | No                                          |
+| Opening files            | ?                        | Yes                      | Yes                                         |
+| Saving Files             | ?                        | Yes                      | `:w` maybe `!`                              |
+| Visual Mode              | Not by default           | Yes                      | Yes but weird                               |
+| Adding Lines             | ?                        | No                       | Yes                                         |
+| Line numbers by default  | ?                        | Yes                      | You wish                                    |
+| RegEx editing            | ?                        | Somewhat limited         | `^([yY][eE][sS])?$`                         |
+| Syntax Highlighting      | ?                        | You don't need it        | I don't know, vimrc is a language in itself |
+| Convoluted configuration | ?                        | No configuration at all! | `/YES`                                      |
+| The standard editor      | Yes                      | (Future: yes)            | Never                                       |
+
+
+
 ## UNIX philosophy
 CATITOR adheres to true UNIX-philosophies. Even the name is a UNIX-like recursive acronym:
 
