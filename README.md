@@ -24,6 +24,7 @@ CATITOR is an extremely UNIX, extremely portable, extremely extensible visual li
 ## Feature Comparison
 
 | Feature                  | The standard editor `ed` | CATITOR                  | ViM                                         |
+| -- | -- | -- | -- |
 | Easy to exit             | ?                        | Yes                      | No                                          |
 | Opening files            | ?                        | Yes                      | Yes                                         |
 | Saving Files             | ?                        | Yes                      | `:w` maybe `!`                              |
